@@ -4,6 +4,10 @@ import numpy as np
 import cv2
 import sys
 
+# Constants
+IMAGE_SIZE = (180, 180)  # Model input size
+NORMALIZATION_FACTOR = 255.0  # For normalizing pixel values to [0, 1]
+
 # Load the trained model with error handling
 try:
     model = load_model('skin23class.h5')
@@ -55,10 +59,10 @@ def predict_image(image_file):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
     # Preprocess the image - resize to match model input size
-    image = cv2.resize(image, (180, 180))
+    image = cv2.resize(image, IMAGE_SIZE)
     
     # Convert to tensor and normalize to [0, 1] range
-    image = np.array(image, dtype=np.float32) / 255.0
+    image = np.array(image, dtype=np.float32) / NORMALIZATION_FACTOR
     
     # Make a prediction
     predictions = model.predict(np.expand_dims(image, axis=0))

@@ -109,7 +109,7 @@
             const file = imageInput.files[0];
             
             if (!file) {
-                showResult('Please select an image', 'error');
+                showError('Please select an image');
                 return;
             }
             
@@ -125,53 +125,51 @@
                 
                 if (data.success) {
                     const confidence = (data.confidence * 100).toFixed(2);
-                    // Create elements safely to prevent XSS
-                    const resultDiv = document.createElement('div');
-                    const predLabel = document.createElement('strong');
-                    predLabel.textContent = 'Prediction: ';
-                    const predText = document.createTextNode(data.class_name);
-                    const br = document.createElement('br');
-                    const confLabel = document.createElement('strong');
-                    confLabel.textContent = 'Confidence: ';
-                    const confText = document.createTextNode(confidence + '%');
-                    
-                    resultDiv.appendChild(predLabel);
-                    resultDiv.appendChild(predText);
-                    resultDiv.appendChild(br);
-                    resultDiv.appendChild(confLabel);
-                    resultDiv.appendChild(confText);
-                    
-                    result.innerHTML = '';
-                    result.appendChild(resultDiv);
-                    result.className = 'success';
-                    result.style.display = 'block';
+                    showSuccess(data.class_name, confidence);
                 } else {
-                    // Use textContent to safely display error message
-                    const errorDiv = document.createElement('div');
-                    const errorLabel = document.createTextNode('Error: ');
-                    const errorText = document.createTextNode(data.error || 'Unknown error');
-                    errorDiv.appendChild(errorLabel);
-                    errorDiv.appendChild(errorText);
-                    
-                    result.innerHTML = '';
-                    result.appendChild(errorDiv);
-                    result.className = 'error';
-                    result.style.display = 'block';
+                    showError(data.error || 'Unknown error');
                 }
             } catch (error) {
-                // Use textContent to safely display error message
-                const errorDiv = document.createElement('div');
-                const errorLabel = document.createTextNode('Error: ');
-                const errorText = document.createTextNode(error.message);
-                errorDiv.appendChild(errorLabel);
-                errorDiv.appendChild(errorText);
-                
-                result.innerHTML = '';
-                result.appendChild(errorDiv);
-                result.className = 'error';
-                result.style.display = 'block';
+                showError(error.message);
             }
         });
+
+        // Helper function to display error messages
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            const errorLabel = document.createTextNode('Error: ');
+            const errorText = document.createTextNode(message);
+            errorDiv.appendChild(errorLabel);
+            errorDiv.appendChild(errorText);
+            
+            result.innerHTML = '';
+            result.appendChild(errorDiv);
+            result.className = 'error';
+            result.style.display = 'block';
+        }
+
+        // Helper function to display success results
+        function showSuccess(className, confidence) {
+            const resultDiv = document.createElement('div');
+            const predLabel = document.createElement('strong');
+            predLabel.textContent = 'Prediction: ';
+            const predText = document.createTextNode(className);
+            const br = document.createElement('br');
+            const confLabel = document.createElement('strong');
+            confLabel.textContent = 'Confidence: ';
+            const confText = document.createTextNode(confidence + '%');
+            
+            resultDiv.appendChild(predLabel);
+            resultDiv.appendChild(predText);
+            resultDiv.appendChild(br);
+            resultDiv.appendChild(confLabel);
+            resultDiv.appendChild(confText);
+            
+            result.innerHTML = '';
+            result.appendChild(resultDiv);
+            result.className = 'success';
+            result.style.display = 'block';
+        }
     </script>
 </body>
 </html>
