@@ -2,9 +2,15 @@ from flask import Flask, request, render_template, jsonify
 from tensorflow.keras.models import load_model
 import numpy as np
 import cv2
+import sys
 
-# Load the trained model
-model = load_model('skin23class.h5')
+# Load the trained model with error handling
+try:
+    model = load_model('skin23class.h5')
+except Exception as e:
+    print(f"Error loading model: {e}", file=sys.stderr)
+    print("Please ensure 'skin23class.h5' exists in the current directory.", file=sys.stderr)
+    sys.exit(1)
 
 # Define class names for the 23 skin disease classes
 CLASS_NAMES = [
@@ -41,14 +47,18 @@ def predict_image(image_file):
     image_bytes = np.frombuffer(image_file.read(), np.uint8)
     image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
     
+    # Validate image was decoded successfully
+    if image is None:
+        raise ValueError('Invalid image format or corrupted image file')
+    
     # Convert BGR to RGB
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
     # Preprocess the image - resize to match model input size
     image = cv2.resize(image, (180, 180))
     
-    # Convert to tensor and normalize
-    image = np.array(image, dtype=np.float32)
+    # Convert to tensor and normalize to [0, 1] range
+    image = np.array(image, dtype=np.float32) / 255.0
     
     # Make a prediction
     predictions = model.predict(np.expand_dims(image, axis=0))
