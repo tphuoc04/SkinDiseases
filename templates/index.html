@@ -3,10 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Skin Disease Classifier</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        #preview {
+            max-width: 100%;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    { blockbo }
-    </form>
+    <div class="container">
+        <h1>Skin Disease Classifier</h1>
+        <p style="text-align: center; color: #666;">Upload an image to classify skin disease</p>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="imageInput" name="image" accept="image/*" required>
+            <img id="preview" alt="Image preview">
+            <button type="submit">Classify Image</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const result = document.getElementById('result');
+
+        // Preview image when selected
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const file = imageInput.files[0];
+            
+            if (!file) {
+                showResult('Please select an image', 'error');
+                return;
+            }
+            
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const confidence = (data.confidence * 100).toFixed(2);
+                    showResult(
+                        `<strong>Prediction:</strong> ${data.class_name}<br>
+                         <strong>Confidence:</strong> ${confidence}%`,
+                        'success'
+                    );
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Error: ${error.message}`, 'error');
+            }
+        });
+
+        function showResult(message, type) {
+            result.innerHTML = message;
+            result.className = type;
+            result.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
